@@ -17,8 +17,8 @@ Route::post('register' , [UserController::class, 'register']);
 Route::post('login' , [UserController::class , 'login']);
 Route::post('logout' , [UserController::class , 'logout'])->middleware('auth:sanctum');
 Route::get('getUser' , [Usercontroller::class , 'getUser'])->middleware('auth:sanctum');
-Route::delete('deleteUser' , [Usercontroller::class , 'deleteUser'])->middleware('auth:sanctum');
-Route::put('updateUser' , [Usercontroller::class , 'updateUser'])->middleware('auth:sanctum');
+Route::delete('deleteUser' , [Usercontroller::class , 'deleteUser'])->middleware('auth:sanctum'); //  خاص  بالسمتخدم المسجل فقط
+Route::put('updateUser' , [Usercontroller::class , 'updateUser'])->middleware('auth:sanctum'); // للتعديل على معلوماتي الشخصية
 
 
 // Car Api

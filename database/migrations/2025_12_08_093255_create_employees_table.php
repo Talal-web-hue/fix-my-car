@@ -13,18 +13,37 @@ return new class extends Migration
     {
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('department_id')->constrained('departments')->OnDelete('set null');
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('department_id')->nullable();
             $table->timestamp('birth');
             $table->timestamps();
+               // إضافة Foreign Keys بعد تعريف الأعمدة
+            $table->foreign('user_id')
+                  ->references('id')
+                  ->on('users')
+                  ->onDelete('cascade');
+                  
+            $table->foreign('department_id')
+                  ->references('id')
+                  ->on('departments')
+                  ->onDelete('set null');
         });
+            
+
+      
     }
 
     /**
      * Reverse the migrations.
      */
-    public function down(): void
+  public function down(): void
     {
+        // عند التراجع: احذف حقل المدير أولاً
+        Schema::table('departments', function (Blueprint $table) {
+            $table->dropForeign(['manager_id']);
+            $table->dropColumn('manager_id');
+        });
+        
         Schema::dropIfExists('employees');
     }
 };

@@ -17,4 +17,10 @@ class Car extends Model
     {
         return $this->hasMnay(fixRequest::class);
     }
+
+
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class);
+    }
 }

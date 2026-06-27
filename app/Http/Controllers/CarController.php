@@ -15,10 +15,10 @@ class CarController extends Controller
         $validated = $request->validate([
             'model'=>'required|string|max:100',
             'plateNumber'=>'required|string|max:15',
-            'vin'=>'nullable|string|size:17',
+            'vin'=>'nullable|string|min:6',
             'color'=>'required|string|max:50',
             'car_manufacture'=>'required|string|max:100',
-            'car_type'=>'required'
+            'car_type'=>'required|string'
         ]);
 
             $user = Auth::user();
@@ -53,6 +53,7 @@ class CarController extends Controller
 
         return response()->json([
             'message' => 'تم جلب جميع سيارات المستخدم بنجاح',
+            'عدد سياراتك هو: ' . $cars->count(),
             'cars' => $cars
         ], 200);
     }
@@ -137,7 +138,7 @@ class CarController extends Controller
 
     public function deleteCarByPlate($plateNumber): JsonResponse
     {
-        $user = Auth::user();
+        $user = Auth::user();  // للحصول على المستخدم الحالي
         $car = $user->cars()->where('plateNumber', $plateNumber)->first();
 
         if (!$car) {

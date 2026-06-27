@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('fix_requests', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('car_id')->constrained('cars')->casacadeOnDelete();
+            $table->foreignId('car_id')->constrained('cars')->cascadeOnDelete();
             $table->string('description');
             $table->string('location'); 
-            $table->enum('status' , ['قيد الانتظار' ,'تم التعيين' ,'قيد التنفيذ ' , 'منتهي'])->defualt('قيد الانتظار');
+            $table->enum('status' , ['قيد الانتظار' ,'تم التعيين' ,'قيد التنفيذ ' , 'منتهي'])->default('قيد الانتظار');
             $table->timestamps();
         });
     }
