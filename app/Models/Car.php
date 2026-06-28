@@ -15,12 +15,18 @@ class Car extends Model
 
     public function fixRequests()
     {
-        return $this->hasMnay(fixRequest::class);
+        return $this->hasMany(fixRequest::class);
     }
 
 
     public function appointments()
     {
         return $this->hasMany(Appointment::class);
+    }
+
+
+    public function maintenanceHistories()
+    {
+        return $this->hasMany(MaintenanceHistory::class);
     }
 }

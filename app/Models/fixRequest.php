@@ -17,4 +17,11 @@ class fixRequest extends Model
     {
         return $this->hasOne(Invoice::class);
     }
+
+
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
 }
