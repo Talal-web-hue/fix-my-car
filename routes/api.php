@@ -4,7 +4,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\CarController;
+use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\FixRequestController;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\PieceController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -41,7 +45,40 @@ Route::get('showFixRequest/{id}', [FixRequestController::class, 'show'])->middle
 Route::delete('deleteFixRequest/{id}', [FixRequestController::class, 'delete'])->middleware('auth:sanctum');
 
 
-// invoice_piece Api
+// Appointment Api
+
+Route::post('storeAppointment', [AppointmentController::class, 'store'])->middleware('auth:sanctum');
+Route::get('indexAllAppointments', [AppointmentController::class, 'index'])->middleware('auth:sanctum');
+Route::delete('destroy/{id}', [AppointmentController::class, 'destroy'])->middleware('auth:sanctum');
+Route::put('update/{id}', [AppointmentController::class, 'update'])->middleware('auth:sanctum');
+Route::get('show/{id}', [AppointmentController::class, 'show'])->middleware('auth:sanctum');
+Route::get('statistics', [AppointmentController::class, 'statistics'])->middleware('auth:sanctum');
 
 
-// Route::();
+
+
+//  Pieces Api
+
+Route::post('store' , [PieceController::class ,'store'])->middleware('auth:sanctum');
+Route::get('show/{id}' , [PieceController::class ,'show'])->middleware('auth:sanctum');
+Route::put('update/{id}' , [PieceController::class ,'update'])->middleware('auth:sanctum');
+Route::delete('delete/{id}' , [PieceController::class ,'delete'])->middleware('auth:sanctum');
+Route::post('duplicate/{id}' , [PieceController::class , 'duplicate'])->middleware('auth:sanctum');
+Route::get('statistics'  ,  [PieceController::class , 'statistics'])->middleware('auth:sanctum');
+Route::get('index'  , [PieceController::class ,  'index'])->middleware('auth:sanctum');
+
+
+
+// Invoice Api
+Route::post('store' , [InvoiceController::class, 'store'])->middleware('auth:sanctum');
+
+
+
+
+// Department Api
+Route::post('storeDepartment' , [DepartmentController::class , 'store'])->middleware('auth:sanctum');
+Route::get('indexDepartments' , [DepartmentController::class , 'index'])->middleware('auth:sanctum');
+Route::put('updateDepartment/{department}' , [DepartmentController::class , 'update'])->middleware('auth:sanctum');
+Route::delete('deleteDepartment/{department}' , [DepartmentController::class , 'destroy'])->middleware('auth:sanctum');
+Route::get('showWithEmployee/{id}' , [DepartmentController::class , 'showWithEmployee'])->middleware('auth:sanctum');
+Route::get('statistics/{id}' , [DepartmentController::class , 'statistics'])->middleware('auth:sanctum');

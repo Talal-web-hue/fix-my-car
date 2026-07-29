@@ -6,54 +6,101 @@ use App\Models\Invoice;
 use App\Models\FixRequest;
 use Illuminate\Http\Request;
 use App\Models\Piece;
+use Illuminate\Support\Facades\DB;
 class InvoiceController extends Controller
 {
 
 
+
+
+// تابع إنشاء الفاتورة , هي  من صلاحيات الموظف و الأدمن  
+
 public function store(Request $request)
 {
-    $request->validate([
+
+   $user = $request->user();
+  if($user->role!=='admin' && $user->role!=='employee') {
+        return response()->json([
+            'success' => false,
+            'message' => 'ليس لديك الصلاحيات الكافية لإنشاء الفاتورة'
+        ], 403);
+    }
+    {
+
+    }
+   $validated = $request->validate([
         'fix_request_id' => 'required|exists:fix_requests,id',
         'pieces' => 'required|array|min:1',
-        'pieces.*.piece_id' => 'required|exists:pieces,id',
+        'pieces.*.piece_id' => 'required|integer|exists:pieces,id',
         'pieces.*.quantity' => 'required|integer|min:1',
-        'service_fee' => 'nullable|numeric|min:0'
+        'labor_cost' => 'nullable|numeric|min:0', // أضفنا هذا أيضاً لأنه مستخدم في الحساب
     ]);
+      // التحقق من عدم وجود  فاتورة سابقة  لنفس الطلب 
+     $existingInvoice = Invoice::where('fix_request_id', $validated['fix_request_id'])->first();
+      if ($existingInvoice) {
+            return response()->json('يوجد فاتورة بالفعل لهذا الطلب، يرجى تعديلها بدلاً من إنشاء جديدة.', 409);
+        }
+         //جلب بيانات طلب التصليح للتأكد منه
+        $fixRequest = FixRequest::find($validated['fix_request_id']);
+        if (!$fixRequest) {
+            return response()->json('طلب التصليح غير موجود', 404);
+        }
+       try {
+            return DB::transaction(function () use ($validated, $user, $fixRequest) {
+                
+                $totalPartsCost = 0;
+                $piecesToAttach = [];
 
-    // التحقق: هل هذا الطلب يخص العميل أو يمكن للموظف الوصول إليه؟
-    // (هنا نفترض أن الموظف فقط من يُنشئ الفاتورة)
-    // يمكنك إضافة منطق حسب دور المستخدم لاحقاً
+                // حساب تكلفة القطع وإعدادها للربط
+                foreach ($validated['pieces'] as $item) {
+                    $piece = Piece::find($item['piece_id']);
+                    
+                    // السعر وقت البيع (مهم جداً للحفاظ على التاريخ المالي)
+                    $priceAtSale = $piece->price; 
+                    $subtotal = $priceAtSale * $item['quantity'];
+                    
+                    $totalPartsCost += $subtotal;
 
-    // $serviceFee = $request->service_fee ?? 0;
-    $piecesTotal = 0;
-    $pivotData = [];
+       // تجهيز البيانات لجدول الكسر (Pivot)
+                    $piecesToAttach[$piece->id] = [
+                        'quantity' => $item['quantity'],
+                        'price_at_time_of_sale' => $priceAtSale,
+                    ];
+                }
 
-    foreach ($request->pieces as $item) {
-        $piece = Piece::find($item['piece_id']);
-        $price = $piece->price;
-        $qty = $item['quantity'];
-        $piecesTotal += $price * $qty;
+                // حساب الإجمالي النهائي
+                $laborCost = $validated['labor_cost'] ?? 0;
+                $finalTotal = $totalPartsCost + $laborCost;
+    // إنشاء الفاتورة
+                $invoice = Invoice::create([
+                    'fix_request_id' => $fixRequest->id,
+                    'employee_id' => $user->id, // الموظف الذي أنشأ الفاتورة
+                    'total_amount' => $finalTotal,
+                    'status' => 'قيد الانتظار',
+                    // ملاحظة: إذا أضفت حقول parts_total و labor_cost لاحقاً، ضعها هنا
+                ]);
+                       $invoice->pieces()->attach($piecesToAttach);
 
-        $pivotData[$piece->id] = [
-            'price_at_time_of_sale' => $price,
-            'quantity' => $qty
-        ];
-    }
+                // تحديث حالة طلب التصليح إلى "منتهي" أو "جاهز للفاتورة" حسب سير عملك
+                // $fixRequest->update(['status' => 'completed']); 
 
-    $totalAmount = $piecesTotal + $serviceFee;
+                // تحميل العلاقات للرد
+                $invoice->load(['pieces', 'fixRequest.car']);
 
-    $invoice = Invoice::create([
-        'fix_request_id' => $request->fix_request_id,
-        // 'employee_id' => auth()->id(), // أو أي منطق لتحديد الموظف
-        'total_amount' => $totalAmount,
-        'status' => 'قيد الانتظار'
-    ]);
-
-    $invoice->pieces()->attach($pivotData);
-
-    return response()->json([
-        'message' => 'تم إنشاء الفاتورة بنجاح.',
-        'invoice' => $invoice->load('pieces')
-    ], 201);
+                return response()->json([
+                    'invoice' => $invoice,
+                    'breakdown' => [
+                        'parts_total' => $totalPartsCost,
+                        'labor_cost' => $laborCost,
+                        'grand_total' => $finalTotal
+                    ]
+                ], 201);
+            });
+      
+        } catch (\Exception $e) {
+            return response()->json('حدث خطأ أثناء إنشاء الفاتورة: ' . $e->getMessage(), 500);
+        }
 }
+
+
 }
