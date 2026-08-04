@@ -17,16 +17,8 @@ return new class extends Migration
             $table->unsignedBigInteger('department_id')->nullable();
             $table->timestamp('birth');
             $table->timestamps();
-               // إضافة Foreign Keys بعد تعريف الأعمدة
-            $table->foreign('user_id')
-                  ->references('id')
-                  ->on('users')
-                  ->onDelete('cascade');
-                  
-            $table->foreign('department_id')
-                  ->references('id')
-                  ->on('departments')
-                  ->onDelete('set null');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('department_id')->references('id')->on('departments')->onDelete('set null');
         });
             
 

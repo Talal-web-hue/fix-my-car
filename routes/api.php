@@ -8,6 +8,7 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\FixRequestController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\PieceController;
 
 Route::get('/user', function (Request $request) {
@@ -82,3 +83,8 @@ Route::put('updateDepartment/{department}' , [DepartmentController::class , 'upd
 Route::delete('deleteDepartment/{department}' , [DepartmentController::class , 'destroy'])->middleware('auth:sanctum');
 Route::get('showWithEmployee/{id}' , [DepartmentController::class , 'showWithEmployee'])->middleware('auth:sanctum');
 Route::get('statistics/{id}' , [DepartmentController::class , 'statistics'])->middleware('auth:sanctum');
+
+
+// Employee Api
+Route::post('sotreEmployee' , [EmployeeController::class , 'store'])->middleware('auth:sanctum');
+Route::get('indexEmployees' , [EmployeeController::class , 'index'])->middleware('auth:sanctum');
